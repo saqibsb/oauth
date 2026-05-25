@@ -11,12 +11,14 @@ import java.util.Optional;
 @Service //Marks this as a Spring service bean (dependency injection)
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    @Autowired //– Spring automatically injects the repository and password encoder
-    private BCryptPasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder passwordEncoder;
 
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     // Register a new user
     public User registerUser(String username, String email, String rawPassword) {
