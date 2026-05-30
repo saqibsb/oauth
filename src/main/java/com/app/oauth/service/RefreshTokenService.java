@@ -1,6 +1,5 @@
 package com.app.oauth.service;
 
-import com.app.oauth.exception.InvalidRefreshTokenException;
 import com.app.oauth.exception.RefreshTokenExpiredException;
 import com.app.oauth.model.RefreshToken;
 import com.app.oauth.model.User;
