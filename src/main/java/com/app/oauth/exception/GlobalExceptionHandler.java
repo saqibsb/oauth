@@ -74,6 +74,32 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.failure("Method not allowed", error));
     }
 
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    public ResponseEntity<ApiResponse<ErrorResponseDto>> handleInvalidRefreshToken(InvalidRefreshTokenException ex) {
+        ErrorResponseDto error = new ErrorResponseDto();
+        error.setError("INVALID_REFRESH_TOKEN");
+        error.setMessage(ex.getMessage());
+        error.setStatus(HttpStatus.UNAUTHORIZED.value());
+        error.setTimestamp(LocalDateTime.now());
+        error.setDetails(null);
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.failure("Invalid refresh token", error));
+
+    }
+
+    @ExceptionHandler(RefreshTokenExpiredException.class)
+    public ResponseEntity<ApiResponse<ErrorResponseDto>> handleExpiredRefreshToken(RefreshTokenExpiredException ex) {
+        ErrorResponseDto error = new ErrorResponseDto();
+        error.setError("REFRESH_TOKEN_EXPIRED");
+        error.setMessage(ex.getMessage());
+        error.setStatus(HttpStatus.UNAUTHORIZED.value());
+        error.setTimestamp(LocalDateTime.now());
+        error.setDetails(null);
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.failure("Refresh token expired", error));
+    }
     private String formatFieldError(FieldError fieldError) {
         String defaultMessage = fieldError.getDefaultMessage() != null
                 ? fieldError.getDefaultMessage()

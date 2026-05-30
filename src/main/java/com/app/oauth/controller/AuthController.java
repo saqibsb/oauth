@@ -9,6 +9,7 @@ import com.app.oauth.dto.response.AuthResponseDto;
 import com.app.oauth.dto.response.ProfileResponseDto;
 import com.app.oauth.dto.response.RefreshTokenResponseDto;
 import com.app.oauth.dto.response.RegisterResponseDto;
+import com.app.oauth.exception.InvalidRefreshTokenException;
 import com.app.oauth.model.RefreshToken;
 import com.app.oauth.model.User;
 import com.app.oauth.service.RefreshTokenService;
@@ -51,7 +52,7 @@ public class AuthController {
                 .orElseThrow(() -> new RuntimeException("Invalid username or password"));
 
         if (!userService.validatePassword(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid username or password");
+            throw new InvalidRefreshTokenException("Invalid username or password");
         }
 
         String accessToken = jwtTokenProvider.generateToken(user.getUsername(), user.getRole().name());
@@ -71,7 +72,7 @@ public class AuthController {
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<RefreshTokenResponseDto>> refresh(@Valid @RequestBody RefreshTokenRequestDto request) {
         RefreshToken refreshToken = refreshTokenService.findByToken(request.getRefreshToken())
-                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+                .orElseThrow(() -> new InvalidRefreshTokenException("Invalid refresh token"));
 
         refreshTokenService.verifyExpiration(refreshToken);
 

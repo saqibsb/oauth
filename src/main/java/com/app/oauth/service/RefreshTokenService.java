@@ -1,5 +1,7 @@
 package com.app.oauth.service;
 
+import com.app.oauth.exception.InvalidRefreshTokenException;
+import com.app.oauth.exception.RefreshTokenExpiredException;
 import com.app.oauth.model.RefreshToken;
 import com.app.oauth.model.User;
 import com.app.oauth.repository.RefreshTokenRepository;
@@ -44,7 +46,7 @@ public class RefreshTokenService {
     public RefreshToken verifyExpiration(RefreshToken refreshToken) {
         if (isExpired(refreshToken)) {
             refreshTokenRepository.delete(refreshToken);
-            throw new RuntimeException("Refresh token was expired. Please login again.");
+            throw new RefreshTokenExpiredException("Refresh token was expired. Please login again.");
         }
         return refreshToken;
     }
