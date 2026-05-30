@@ -1,5 +1,6 @@
 package com.app.oauth.service;
 
+import com.app.oauth.model.Role;
 import com.app.oauth.model.User;
 import com.app.oauth.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,7 @@ public class UserService {
         user.setUsername(username);
         user.setEmail(email);
         user.setPassword(hashedPassword);
+        user.setRole(Role.USER);
 
         return userRepository.save(user);
     }

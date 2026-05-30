@@ -5,6 +5,7 @@ import com.app.oauth.dto.response.ErrorResponseDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -61,6 +62,18 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.failure("Unexpected error", error));
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiResponse<ErrorResponseDto>> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        ErrorResponseDto error = new ErrorResponseDto();
+        error.setError("METHOD_NOT_ALLOWED");
+        error.setMessage(ex.getMessage());
+        error.setStatus(HttpStatus.METHOD_NOT_ALLOWED.value());
+        error.setTimestamp(LocalDateTime.now());
+
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                .body(ApiResponse.failure("Method not allowed", error));
+    }
+
     private String formatFieldError(FieldError fieldError) {
         String defaultMessage = fieldError.getDefaultMessage() != null
                 ? fieldError.getDefaultMessage()
@@ -69,69 +82,3 @@ public class GlobalExceptionHandler {
     }
 }
 
-//package com.app.oauth.exception;
-//import com.app.oauth.dto.response.ErrorResponseDto;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.validation.FieldError;
-//import org.springframework.web.bind.MethodArgumentNotValidException;
-//import org.springframework.web.bind.annotation.ControllerAdvice;
-//import org.springframework.web.bind.annotation.ExceptionHandler;
-//
-//import java.time.LocalDateTime;
-//import java.util.List;
-//import java.util.stream.Collectors;
-//
-//@ControllerAdvice
-//public class GlobalExceptionHandler {
-//
-//    @ExceptionHandler(RuntimeException.class)
-//    public ResponseEntity<ErrorResponseDto> handleRuntimeException(RuntimeException ex) {
-//        ErrorResponseDto error = new ErrorResponseDto(
-//                "BAD_REQUEST",
-//                ex.getMessage(),
-//                HttpStatus.BAD_REQUEST.value(),
-//                LocalDateTime.now(),
-//                null
-//        );
-//
-//        return ResponseEntity.badRequest().body(error);
-//    }
-//
-//    @ExceptionHandler(MethodArgumentNotValidException.class)
-//    public ResponseEntity<ErrorResponseDto> handleValidationException(MethodArgumentNotValidException ex) {
-//        List<String> details = ex.getBindingResult()
-//                .getAllErrors()
-//                .stream()
-//                .map(err -> {
-//                    if (err instanceof FieldError fieldError) {
-//                        return fieldError.getField() + ": " + fieldError.getDefaultMessage();
-//                    }
-//                    return err.getDefaultMessage();
-//                })
-//                .collect(Collectors.toList());
-//
-//        ErrorResponseDto error = new ErrorResponseDto(
-//                "VALIDATION_ERROR",
-//                "Invalid request payload",
-//                HttpStatus.BAD_REQUEST.value(),
-//                LocalDateTime.now(),
-//                details
-//        );
-//
-//        return ResponseEntity.badRequest().body(error);
-//    }
-//
-//    @ExceptionHandler(Exception.class)
-//    public ResponseEntity<ErrorResponseDto> handleGenericException(Exception ex) {
-//        ErrorResponseDto error = new ErrorResponseDto(
-//                "INTERNAL_SERVER_ERROR",
-//                "Something went wrong",
-//                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-//                LocalDateTime.now(),
-//                null
-//        );
-//
-//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-//    }
-//}

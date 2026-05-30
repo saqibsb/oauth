@@ -2,6 +2,8 @@ package com.app.oauth.config;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +13,8 @@ import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
+
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
 
     private final SecretKey key;
     private final long jwtExpirationInMs;
@@ -23,43 +27,48 @@ public class JwtTokenProvider {
         this.jwtExpirationInMs = jwtExpirationInMs;
     }
 
-    // Generate JWT token
-    public String generateToken(String username) {
-        Date expiryDate = new Date(System.currentTimeMillis() + jwtExpirationInMs);
+    public String generateToken(String username, String role) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
         return Jwts.builder()
                 .subject(username)
-                .issuedAt(new Date())
+                .claim("role", role)
+                .issuedAt(now)
                 .expiration(expiryDate)
                 .signWith(key)
                 .compact();
     }
 
-    // Get username from JWT token
     public String getUsernameFromJWT(String token) {
-        Claims claims = Jwts.parser()
+        return getClaims(token).getSubject();
+    }
+
+    public String getRoleFromJWT(String token) {
+        return getClaims(token).get("role", String.class);
+    }
+
+    public boolean validateToken(String token) {
+        try {
+            getClaims(token);
+            return true;
+        } catch (MalformedJwtException ex) {
+            logger.error("Invalid JWT token: {}", ex.getMessage());
+        } catch (ExpiredJwtException ex) {
+            logger.error("Expired JWT token: {}", ex.getMessage());
+        } catch (UnsupportedJwtException ex) {
+            logger.error("Unsupported JWT token: {}", ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            logger.error("JWT claims string is empty: {}", ex.getMessage());
+        }
+        return false;
+    }
+
+    private Claims getClaims(String token) {
+        return Jwts.parser()
                 .verifyWith(key)
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
-
-        return claims.getSubject();
-    }
-
-    // Validate JWT token
-    public boolean validateToken(String authToken) {
-        try {
-            Jwts.parser().verifyWith(key).build().parseSignedClaims(authToken);
-            return true;
-        } catch (MalformedJwtException ex) {
-            // Invalid JWT token
-        } catch (ExpiredJwtException ex) {
-            // Expired JWT token
-        } catch (UnsupportedJwtException ex) {
-            // Unsupported JWT token
-        } catch (IllegalArgumentException ex) {
-            // JWT claims string is empty
-        }
-        return false;
     }
 }
